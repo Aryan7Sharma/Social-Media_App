@@ -13,6 +13,8 @@ class Profile(models.Model):
     profileimg = models.ImageField(upload_to='profile_images', default='blank-profile-picture.jpg')
     location = models.CharField(max_length=100, blank=True)
 
+    def __str__(self):
+        return self.user.username
     
 # Post Table or Model
 class Post(models.Model):
