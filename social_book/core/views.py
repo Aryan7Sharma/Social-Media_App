@@ -2,19 +2,16 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
-from .models import Profile, Post
+from .models import Profile, Post, LikePost
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 @login_required(login_url='signin')
 def index(request):
     user_object = User.objects.get(username=request.user.username)
-    if user_object:
-        print(user_object)
-        user_profile = Profile.objects.get(user=user_object)
-    else:
-        user_profile = {}
-    return render(request, 'index.html',{'user_profile':user_profile})
+    user_profile = Profile.objects.get(user=user_object)
+    posts = Post.objects.all() 
+    return render(request, 'index.html',{'user_profile':user_profile, 'posts':posts})
 
 # create sign-up function
 def signup(request):
@@ -105,3 +102,30 @@ def upload(request):
         return redirect('/')
     else:
         return redirect('/')
+# Like Post function
+@login_required(login_url=signin)
+def like_post(request):
+    username = request.user.username
+    post_id = request.GET.get('post_id')
+
+    post = Post.objects.get(id=post_id)
+
+    like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
+    print(like_filter)
+    print(like_filter == None)
+    if like_filter == None:
+        new_like = LikePost.objects.create(post_id=post_id, username=username)
+        new_like.save()
+        post.no_of_likes = post.no_of_likes+1
+        post.save()
+        return redirect('/')
+    else:
+        like_filter.delete()
+        post.no_of_likes = post.no_of_likes-1
+        post.save()
+        return redirect('/')
+
+# Profile Page 
+@login_required(login_url=signin)
+def profile(request):
+    return render(request, 'profile.html')
